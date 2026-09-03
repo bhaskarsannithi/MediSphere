@@ -1,0 +1,51 @@
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Patients from './pages/Patients';
+import Patient360 from './pages/Patient360';
+import DigitalTwin from './pages/DigitalTwin';
+import FHIRResources from './pages/FHIRResources';
+import Vitals from './pages/Vitals';
+import LabResults from './pages/LabResults';
+import Consent from './pages/Consent';
+import AuditLogs from './pages/AuditLogs';
+import Settings from './pages/Settings';
+import './styles/theme.css';
+import './styles/layout.css';
+import './styles/pages.css';
+import './App.css';
+
+function App() {
+  const [isAuthenticated] = useState(true);
+
+  return (
+    <Router>
+      <Routes>
+        {!isAuthenticated ? (
+          <>
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </>
+        ) : (
+          <>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/patients" element={<Patients />} />
+            <Route path="/patient/:patientId" element={<Patient360 />} />
+            <Route path="/digital-twin" element={<DigitalTwin />} />
+            <Route path="/fhir-resources" element={<FHIRResources />} />
+            <Route path="/vitals" element={<Vitals />} />
+            <Route path="/lab-results" element={<LabResults />} />
+            <Route path="/consent" element={<Consent />} />
+            <Route path="/audit-logs" element={<AuditLogs />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="*" element={<Navigate to="/dashboard" />} />
+          </>
+        )}
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
