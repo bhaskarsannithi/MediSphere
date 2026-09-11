@@ -484,6 +484,40 @@
   transition: width var(--transition-base);
 }
 
+.shap-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) minmax(120px, 1fr) auto;
+  gap: var(--spacing-3);
+  align-items: center;
+  margin-top: var(--spacing-3);
+}
+
+.shap-row small {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin-top: 2px;
+}
+
+.ai-prediction-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-4);
+}
+
+.ai-prediction-summary span,
+.ai-disclaimer {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.ai-disclaimer {
+  border-top: 1px solid var(--border-light);
+  margin-top: var(--spacing-5);
+  padding-top: var(--spacing-3);
+}
+
 .sources-list {
   display: flex;
   gap: var(--spacing-2);
@@ -685,6 +719,11 @@
 
   .twin-content {
     grid-template-columns: 1fr;
+  }
+
+  .shap-row {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
   }
 }
 

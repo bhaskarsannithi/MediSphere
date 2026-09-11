@@ -1,6 +1,6 @@
-// Mock data for MediSphere application
+//  data for MediSphere application
 
-export const mockPatients = [
+export const Patients = [
   {
     id: 'MS-10001',
     name: 'John Doe',
@@ -81,7 +81,7 @@ export const mockPatients = [
   },
 ];
 
-export const mockPatientDetails = {
+export const PatientDetails = {
   'MS-10001': {
     id: 'MS-10001',
     name: 'John Doe',
@@ -103,7 +103,7 @@ export const mockPatientDetails = {
   },
 };
 
-export const mockVitals = {
+export const Vitals = {
   'MS-10001': {
     heartRate: 78,
     heartRateUnit: 'BPM',
@@ -117,7 +117,7 @@ export const mockVitals = {
   },
 };
 
-export const mockVitalTrends = {
+export const VitalTrends = {
   'MS-10001': {
     heartRate: [
       { time: '00:00', value: 72 },
@@ -167,7 +167,7 @@ export const mockVitalTrends = {
   },
 };
 
-export const mockLabResults = {
+export const LabResults = {
   'MS-10001': [
     {
       id: 'lab-001',
@@ -217,7 +217,7 @@ export const mockLabResults = {
   ],
 };
 
-export const mockFHIRResources = {
+export const FHIRResources = {
   'MS-10001': [
     {
       id: 'fhir-obs-001',
@@ -254,7 +254,7 @@ export const mockFHIRResources = {
   ],
 };
 
-export const mockFHIRResourceDetails = {
+export const FHIRResourceDetails = {
   'obs-10001-001': {
     resourceType: 'Observation',
     id: 'obs-10001-001',
@@ -315,7 +315,7 @@ export const mockFHIRResourceDetails = {
   },
 };
 
-export const mockRecentActivity = [
+export const RecentActivity = [
   {
     id: 1,
     description: 'Vital signs updated',
@@ -348,20 +348,20 @@ export const mockRecentActivity = [
   },
 ];
 
-export const mockDashboardStats = {
+export const DashboardStats = {
   totalPatients: 1247,
   activeDigitalTwins: 1198,
   fhirResources: '2.4M',
   connectedDevices: 892,
 };
 
-export const mockSystemStatus = {
+export const SystemStatus = {
   fhirSync: { status: 'ACTIVE', lastSync: '2 minutes ago' },
   kafkaConnection: { status: 'ACTIVE', messagesProcessed: 25432 },
   databaseConnection: { status: 'ACTIVE', latency: '2ms' },
 };
 
-export const mockDigitalTwins = [
+export const DigitalTwins = [
   {
     id: 'twin-001',
     patientId: 'MS-10001',
@@ -409,7 +409,7 @@ export const mockDigitalTwins = [
   },
 ];
 
-export const mockConsents = [
+export const Consents = [
   {
     id: 'consent-001',
     patientId: 'MS-10001',
@@ -467,7 +467,7 @@ export const mockConsents = [
   },
 ];
 
-export const mockAuditLogs = [
+export const AuditLogs = [
   {
     id: 1,
     timestamp: '2025-09-01 20:27:00',
@@ -520,7 +520,7 @@ export const mockAuditLogs = [
   },
 ];
 
-export const mockUserProfile = {
+export const UserProfile = {
   name: 'Dr. Sarah Chen',
   role: 'Physician',
   email: 'sarah.chen@medisphere.com',
@@ -528,7 +528,7 @@ export const mockUserProfile = {
   avatar: '👩‍⚕️',
 };
 
-export const mockPatientActivityChart = [
+export const PatientActivityChart = [
   { date: 'Sep 1', active: 245, inactive: 98 },
   { date: 'Sep 2', active: 267, inactive: 89 },
   { date: 'Sep 3', active: 289, inactive: 76 },
@@ -538,7 +538,7 @@ export const mockPatientActivityChart = [
   { date: 'Sep 7', active: 342, inactive: 58 },
 ];
 
-export const mockVitalMonitoringChart = [
+export const VitalMonitoringChart = [
   { time: '00:00', systolic: 118, diastolic: 78 },
   { time: '04:00', systolic: 115, diastolic: 76 },
   { time: '08:00', systolic: 120, diastolic: 79 },
@@ -548,10 +548,19 @@ export const mockVitalMonitoringChart = [
   { time: '23:59', systolic: 118, diastolic: 78 },
 ];
 
-export const mockLiveVitalsData = [
+export const LiveVitalsData = [
   { id: 1, patientName: 'John Doe', heartRate: 78, spO2: 98, temp: 36.7, status: 'NORMAL' },
   { id: 2, patientName: 'Sarah Miller', heartRate: 72, spO2: 97, temp: 36.5, status: 'NORMAL' },
   { id: 3, patientName: 'Emily Carter', heartRate: 85, spO2: 96, temp: 37.1, status: 'MONITORING' },
   { id: 4, patientName: 'Michael Brown', heartRate: 68, spO2: 98, temp: 36.4, status: 'NORMAL' },
   { id: 5, patientName: 'Sophia Wilson', heartRate: 76, spO2: 98, temp: 36.6, status: 'NORMAL' },
 ];
+
+export const mockUserProfile = UserProfile;
+export const mockPatientActivityChart = PatientActivityChart;
+export const mockVitalMonitoringChart = VitalMonitoringChart;
+export const mockSystemStatus = SystemStatus;
+export const mockRecentActivity = RecentActivity;
+export const mockVitals = Vitals;
+export const mockVitalTrends = VitalTrends;
+export const mockLiveVitalsData = LiveVitalsData;

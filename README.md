@@ -83,3 +83,42 @@ curl -u admin:medisphere-demo -H "Content-Type: application/json" -d "{\"patient
 ## Testing and limitations
 
 Run backend tests with `cd backend` then `mvn.cmd clean test`. Run frontend checks with `npm run lint` and `npm run build`. The demo uses HTTP Basic with in-memory users and basic FHIR validation; production SMART-on-FHIR/OIDC, persistent identity management, real EHR/wearable connectors, and advanced clinical AI are intentionally outside Milestone 1.
+
+## Milestone 2: AI risk decision support
+
+Milestone 2 adds a separate Python FastAPI service in `ai-service/`. Spring Boot remains the authenticated public API: the browser never calls the AI service or MongoDB directly. On a protected prediction request, Spring Boot derives a minimized feature vector from the existing patient, vital, and lab records, calls the AI service, stores the exact model-versioned result in `risk_predictions`, audits the action, and writes a compact risk summary to the patient's `health_twins` record.
+
+The AI training dataset is generated locally from a fixed random seed. It is synthetic and de-identified; no real patient data or PHI is used for model training. The service uses persisted `RandomForestClassifier` models for CVD and diabetes-complication risk. It calculates its own accuracy, precision, recall, F1, ROC-AUC, confusion matrix, Brier score, calibration curve, and sex/age-group audit from the holdout data. Metrics are never hard-coded. SHAP `TreeExplainer` calculates patient-specific probability-space contributions from the exact persisted random-forest model. Each saved explanation includes the input value, signed contribution, direction, importance, base value, and a consistency error against the predicted probability.
+
+Federated learning is supplied as an on-demand FedAvg demonstration. It creates three separate local partitions (`Hospital A`, `Hospital B`, and `Hospital C`) and averages local model parameters; raw rows are not aggregated. The status endpoint reports actual rounds, loss, accuracy, and the convergence result. It remains `NOT_STARTED` until training is explicitly requested, rather than claiming a completed run.
+
+### Run the AI service
+
+The service image uses Python 3.11 and pinned prediction dependencies including SHAP 0.44.1, scikit-learn 1.3.2, NumPy 1.25.2, pandas 2.1.4, and SciPy 1.11.4.
+
+```powershell
+docker compose -f backend/docker-compose.yml up -d --build
+```
+
+The AI service is then available at `http://localhost:8000/health`. The first prediction trains and persists the two local synthetic models. To run the federated demonstration explicitly:
+
+```powershell
+Invoke-RestMethod -Method Post "http://localhost:8000/federated/train?rounds=8"
+```
+
+### AI API
+
+All Spring Boot AI endpoints require the existing Basic Auth roles:
+
+- `POST /api/ai/predict/cvd/{patientId}`
+- `POST /api/ai/predict/diabetes/{patientId}`
+- `GET /api/ai/predictions/{patientId}`
+- `GET /api/ai/explanations/{predictionId}`
+- `GET /api/ai/models`
+- `GET /api/ai/federated/status`
+
+The React **AI Risk Prediction** page exposes the patient selector, calculated results, SHAP bars, live model metrics, and federated status. It displays the required clinical safety statement: this prototype estimates risk only and does not diagnose, prescribe, or replace an authorized clinician's judgment.
+
+### SHAP interpretation
+
+The CVD and diabetes predictions use `shap.TreeExplainer` because the persisted models are random forests. Contributions explain class-1 risk in probability space: the base value plus all SHAP contributions approximately equals the model's predicted probability. Positive values contributed toward higher model risk and negative values toward lower model risk; they do not establish causation. Explanations are returned by the existing prediction endpoints and persisted in each `risk_predictions` document. The UI presents the top contributions on AI Risk Prediction and Patient 360 with a clinical-review disclaimer.

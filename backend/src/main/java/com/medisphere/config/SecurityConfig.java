@@ -25,7 +25,7 @@ public class SecurityConfig {
     @Bean
     UserDetailsService userDetailsService(
             @Value("${medisphere.security.username:admin}") String username,
-            @Value("${medisphere.security.password:medisphere-demo}") String password,
+            @Value("${medisphere.security.password:12345}") String password,
             PasswordEncoder encoder) {
         return new InMemoryUserDetailsManager(
                 User.withUsername(username).password(encoder.encode(password)).roles("ADMIN").build(),

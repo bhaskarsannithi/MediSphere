@@ -19,6 +19,7 @@ export default function Patient360() {
   const [twin, setTwin] = useState(null);
   const [labResults, setLabResults] = useState([]);
   const [fhirResources, setFhirResources] = useState([]);
+  const [riskPredictions, setRiskPredictions] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -27,7 +28,8 @@ export default function Patient360() {
       apiFetch(`/api/twins/${patientId}`),
       apiFetch(`/api/labs/${patientId}`),
       apiFetch(`/api/fhir?patientId=${patientId}`),
-    ]).then(([patientResponse, twinResponse, labsResponse, fhirResponse]) => {
+      apiFetch(`/api/ai/predictions/${patientId}`),
+    ]).then(([patientResponse, twinResponse, labsResponse, fhirResponse, predictionResponse]) => {
       setPatient({
         ...patientResponse,
         id: patientResponse.patientId,
@@ -43,6 +45,7 @@ export default function Patient360() {
       setTwin(twinResponse);
       setLabResults(labsResponse.map((lab) => ({ ...lab, id: lab.labResultId, test: lab.testName, result: lab.value, date: lab.timestamp, status: 'NORMAL' })));
       setFhirResources(fhirResponse.map((resource) => ({ ...resource, fhirId: resource.fhirResourceId, status: resource.validationStatus, lastSync: resource.createdAt })));
+      setRiskPredictions(predictionResponse);
     }).catch((requestError) => setError(requestError.message));
   }, [patientId]);
 
@@ -261,6 +264,21 @@ export default function Patient360() {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="chart-card ai-explanation-card">
+          <div className="chart-title">AI Risk Explanation</div>
+          <p className="dashboard-subtitle">Model feature contributions for the latest persisted risk prediction.</p>
+          {riskPredictions.length ? <>
+            {riskPredictions.slice(0, 1).map((prediction) => <div key={prediction.predictionId}>
+              <div className="ai-prediction-summary"><strong>{prediction.modelType === 'CVD' ? 'CVD risk' : 'Diabetes complication risk'}: {Number(prediction.riskPercentage).toFixed(1)}%</strong><span>{prediction.modelVersion}</span></div>
+              {(prediction.explanation || []).slice(0, 6).map((item) => <div className="shap-row" key={item.feature}>
+                <div><strong>{item.label || item.feature}</strong><small>{item.summary || 'Feature contribution to the model prediction.'}</small></div>
+                <span className={`badge ${item.direction === 'INCREASES_RISK' ? 'badge-danger' : 'badge-success'}`}>{item.direction === 'INCREASES_RISK' ? 'Higher model risk' : 'Lower model risk'}</span>
+              </div>)}
+              <p className="ai-disclaimer">This is an AI model explanation, not a diagnosis and not proof of causation.</p>
+            </div>)}
+          </> : <p>No AI risk prediction has been calculated for this patient yet.</p>}
         </div>
 
         {/* Recent Lab Results */}

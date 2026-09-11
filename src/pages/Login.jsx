@@ -18,8 +18,11 @@ export default function Login() {
     login(username, password).then(() => {
       navigate('/dashboard');
       setIsLoading(false);
-    }).catch(() => {
-      setError('Unable to authenticate. Use the configured demo credentials.');
+    }).catch((requestError) => {
+      const isBackendUnavailable = requestError instanceof TypeError || requestError.message.includes('Failed to fetch');
+      setError(isBackendUnavailable
+        ? 'The MediSphere backend is unavailable. Start it on port 8080, then try again.'
+        : 'Unable to authenticate. Check your username and password.');
       setIsLoading(false);
     });
   };

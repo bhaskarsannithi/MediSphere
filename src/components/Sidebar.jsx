@@ -10,6 +10,7 @@ import {
   Beaker,
   CheckCircle,
   BarChart3,
+  Sparkles,
   Settings,
   X,
 } from 'lucide-react';
@@ -31,6 +32,7 @@ export default function Sidebar() {
     { name: 'Lab Results', icon: Beaker, path: '/lab-results' },
     { name: 'Consent', icon: CheckCircle, path: '/consent' },
     { name: 'Audit Logs', icon: BarChart3, path: '/audit-logs' },
+    { name: 'AI Risk Prediction', icon: Sparkles, path: '/ai-risk-prediction' },
     { name: 'Settings', icon: Settings, path: '/settings' },
   ];
 

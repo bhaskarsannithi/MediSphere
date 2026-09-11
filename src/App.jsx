@@ -10,6 +10,7 @@ import Vitals from './pages/Vitals';
 import LabResults from './pages/LabResults';
 import Consent from './pages/Consent';
 import AuditLogs from './pages/AuditLogs';
+import AIRiskPrediction from './pages/AIRiskPrediction';
 import Settings from './pages/Settings';
 import './styles/theme.css';
 import './styles/layout.css';
@@ -48,6 +49,7 @@ function App() {
             <Route path="/lab-results" element={<LabResults />} />
             <Route path="/consent" element={<Consent />} />
             <Route path="/audit-logs" element={<AuditLogs />} />
+            <Route path="/ai-risk-prediction" element={<AIRiskPrediction />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/" element={<Navigate to="/dashboard" />} />
             <Route path="*" element={<Navigate to="/dashboard" />} />

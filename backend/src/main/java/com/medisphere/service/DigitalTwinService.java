@@ -40,6 +40,7 @@ public class DigitalTwinService {
         twin.setConsentStatus("PENDING");
         twin.setCompleteness(0);
         twin.setConnectedSources(new ArrayList<>(List.of("EHR", "LAB", "WEARABLE")));
+        twin.setRiskPredictions(new java.util.HashMap<>());
         twin.setLastUpdated(LocalDateTime.now());
         return healthTwinRepository.save(twin);
     }
@@ -63,6 +64,9 @@ public class DigitalTwinService {
         }
         if (updates.containsKey("connectedSources")) {
             twin.setConnectedSources((List<String>) updates.get("connectedSources"));
+        }
+        if (updates.containsKey("riskPredictions")) {
+            twin.setRiskPredictions((Map<String, Object>) updates.get("riskPredictions"));
         }
         twin.setCompleteness(calculateCompleteness(twin));
         twin.setLastUpdated(LocalDateTime.now());

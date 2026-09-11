@@ -5,20 +5,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
-import java.util.Map;
+import com.medisphere.dto.ErrorResponse;
+import com.medisphere.service.AIServiceUnavailableException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> badRequest(IllegalArgumentException exception) {
-        return ResponseEntity.badRequest().body(Map.of(
-                "timestamp", LocalDateTime.now(), "status", 400, "error", "Bad Request", "message", exception.getMessage()));
+    public ResponseEntity<ErrorResponse> badRequest(IllegalArgumentException exception) {
+        return ResponseEntity.badRequest().body(ErrorResponse.of("Bad Request", exception.getMessage()));
+    }
+
+    @ExceptionHandler(AIServiceUnavailableException.class)
+    public ResponseEntity<ErrorResponse> aiUnavailable(AIServiceUnavailableException exception) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ErrorResponse.of("AI Service Unavailable", exception.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> unexpected(Exception exception) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "timestamp", LocalDateTime.now(), "status", 500, "error", "Internal Server Error", "message", "Request could not be completed"));
+    public ResponseEntity<ErrorResponse> unexpected(Exception exception) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErrorResponse.of("Internal Server Error", "Request could not be completed"));
     }
 }

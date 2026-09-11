@@ -41,5 +41,13 @@ services:
       timeout: 5s
       retries: 10
 
+  ai-service:
+    build:
+      context: ../ai-service
+    container_name: medisphere-ai-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+
 volumes:
   medisphere-mongodb-data:

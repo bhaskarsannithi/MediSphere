@@ -23,6 +23,7 @@ public class HealthTwin {
     private String consentStatus;
     private Integer completeness;
     private List<String> connectedSources;
+    private Map<String, Object> riskPredictions;
     private LocalDateTime lastUpdated;
 
     public HealthTwin() {
@@ -48,6 +49,8 @@ public class HealthTwin {
     public void setCompleteness(Integer completeness) { this.completeness = completeness; }
     public List<String> getConnectedSources() { return connectedSources; }
     public void setConnectedSources(List<String> connectedSources) { this.connectedSources = connectedSources; }
+    public Map<String, Object> getRiskPredictions() { return riskPredictions; }
+    public void setRiskPredictions(Map<String, Object> riskPredictions) { this.riskPredictions = riskPredictions; }
     public LocalDateTime getLastUpdated() { return lastUpdated; }
     public void setLastUpdated(LocalDateTime lastUpdated) { this.lastUpdated = lastUpdated; }
 }

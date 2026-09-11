@@ -31,3 +31,11 @@ dist-ssr
 !.env.example
 .idea/
 .vscode/
+
+# AI service runtime artifacts
+ai-service/models/
+ai-service/data/*.csv
+ai-service/reports/
+ai-service/**/__pycache__/
+ai-service/.pytest_cache/
+ai-service/pytest-cache-files-*/
