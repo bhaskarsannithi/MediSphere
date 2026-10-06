@@ -20,6 +20,7 @@ export default function Patient360() {
   const [labResults, setLabResults] = useState([]);
   const [fhirResources, setFhirResources] = useState([]);
   const [riskPredictions, setRiskPredictions] = useState([]);
+  const [alerts, setAlerts] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -29,7 +30,8 @@ export default function Patient360() {
       apiFetch(`/api/labs/${patientId}`),
       apiFetch(`/api/fhir?patientId=${patientId}`),
       apiFetch(`/api/ai/predictions/${patientId}`),
-    ]).then(([patientResponse, twinResponse, labsResponse, fhirResponse, predictionResponse]) => {
+      apiFetch(`/api/alerts/patient/${patientId}`),
+    ]).then(([patientResponse, twinResponse, labsResponse, fhirResponse, predictionResponse, alertResponse]) => {
       setPatient({
         ...patientResponse,
         id: patientResponse.patientId,
@@ -46,6 +48,7 @@ export default function Patient360() {
       setLabResults(labsResponse.map((lab) => ({ ...lab, id: lab.labResultId, test: lab.testName, result: lab.value, date: lab.timestamp, status: 'NORMAL' })));
       setFhirResources(fhirResponse.map((resource) => ({ ...resource, fhirId: resource.fhirResourceId, status: resource.validationStatus, lastSync: resource.createdAt })));
       setRiskPredictions(predictionResponse);
+      setAlerts(alertResponse);
     }).catch((requestError) => setError(requestError.message));
   }, [patientId]);
 
@@ -279,6 +282,21 @@ export default function Patient360() {
               <p className="ai-disclaimer">This is an AI model explanation, not a diagnosis and not proof of causation.</p>
             </div>)}
           </> : <p>No AI risk prediction has been calculated for this patient yet.</p>}
+        </div>
+
+        <div className="dashboard-section">
+          <h3 className="section-title">Monitoring Alerts</h3>
+          <div className="table-wrapper">
+            <div className="table-responsive">
+              <table>
+                <thead><tr><th>Vital</th><th>Observed</th><th>Severity</th><th>Status</th><th>Assigned</th><th>Created</th></tr></thead>
+                <tbody>
+                  {alerts.slice(0, 8).map((alert) => <tr key={alert.alertId || alert.id}><td>{alert.vitalType}</td><td>{alert.observedValue}</td><td><span className={`badge ${alert.severity === 'CRITICAL' || alert.severity === 'HIGH' ? 'badge-danger' : 'badge-warning'}`}>{alert.severity}</span></td><td>{alert.status}</td><td>{alert.assignedTo}</td><td>{alert.createdAt}</td></tr>)}
+                  {!alerts.length && <tr><td colSpan="6" className="empty-state">No monitoring alerts for this patient.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         {/* Recent Lab Results */}

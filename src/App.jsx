@@ -12,6 +12,9 @@ import Consent from './pages/Consent';
 import AuditLogs from './pages/AuditLogs';
 import AIRiskPrediction from './pages/AIRiskPrediction';
 import Settings from './pages/Settings';
+import Monitoring from './pages/Monitoring';
+import CarePlans from './pages/CarePlans';
+import CarePlanDetails from './pages/CarePlanDetails';
 import './styles/theme.css';
 import './styles/layout.css';
 import './styles/pages.css';
@@ -46,6 +49,9 @@ function App() {
             <Route path="/digital-twin" element={<DigitalTwin />} />
             <Route path="/fhir-resources" element={<FHIRResources />} />
             <Route path="/vitals" element={<Vitals />} />
+            <Route path="/monitoring" element={<Monitoring />} />
+            <Route path="/careplans" element={<CarePlans />} />
+            <Route path="/careplans/:carePlanId" element={<CarePlanDetails />} />
             <Route path="/lab-results" element={<LabResults />} />
             <Route path="/consent" element={<Consent />} />
             <Route path="/audit-logs" element={<AuditLogs />} />

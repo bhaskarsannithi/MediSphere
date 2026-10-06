@@ -21,7 +21,58 @@ MediSphere is a Milestone 1 clinical data foundation using synthetic healthcare 
 
 React/Vite -> Spring Boot 3.5 / Java 25 -> MongoDB (`medisphere`) and Kafka (`vital-signs`). The main flow is synthetic wearable -> Kafka producer -> consumer -> `vitals` collection -> one current `health_twins` document -> Patient 360.
 
-MongoDB collections are `patients`, `health_twins`, `vitals`, `lab_results`, `fhir_resources`, `consents`, `audit_logs`, and `users` (the user model is reserved for a future persistent identity provider).
+MongoDB collections are `patients`, `health_twins`, `vitals`, `alerts`, `lab_results`, `fhir_resources`, `consents`, `audit_logs`, and `users` (the user model is reserved for a future persistent identity provider).
+
+## Milestone 3: Continuous monitoring and alerts
+
+Implemented monitoring extends the existing `vital-signs` Kafka flow:
+
+`wearable simulator -> Kafka -> VitalStreamService -> validation -> VitalService/Digital Twin -> AlertService -> MongoDB -> React Monitoring`
+
+- **Validation:** required patient/type/value/unit fields, known vital types, physiological bounds, patient existence, and future timestamp checks are applied before a vital is persisted or evaluated. Malformed Kafka events are rejected without creating clinical alerts.
+- **Anomaly detection:** the alert service calculates a rolling baseline from up to 20 prior patient readings of the same type. With enough history it calculates a deterministic deviation score using standard deviation; configured clinical thresholds remain the final alert decision layer.
+- **Clinical rules:** heart rate `>=140`/`<=35` is `CRITICAL`, `>=120`/`<=45` is `HIGH`; SpO2 `<=85` is `CRITICAL` and `<=90` is `HIGH`; temperature, respiratory-rate, and systolic blood-pressure boundaries produce `HIGH` alerts. Other statistical anomalies receive `MEDIUM` severity.
+- **Persistence and lifecycle:** alerts are stored in the `alerts` collection with observed/baseline values, anomaly score, detection method, routing role, source, correlation ID, timestamps, and `NEW -> ACKNOWLEDGED -> RESOLVED/DISMISSED` status fields.
+- **Routing and notification:** critical/high alerts route to `ROLE_DOCTOR`; lower-severity alerts route to `ROLE_NURSE`. `notificationStatus=IN_APP` records the working in-app notification channel shown by the monitoring page. Email/mobile push adapters remain planned. ADMIN, DOCTOR, and NURSE can acknowledge; only ADMIN and DOCTOR can resolve or dismiss. Actions are written to the existing audit log.
+- **Alert fatigue:** active alerts with the same patient, vital type, and rule are grouped for the configurable `MEDISPHERE_ALERT_COOLDOWN_MINUTES` window (default 15 minutes), incrementing `suppressedCount` instead of creating another alert.
+- **Monitoring UI:** `/monitoring` polls active alerts and statistics every five seconds, displays measured persisted metrics, and supports acknowledgement. Patient 360 includes the patient alert list. This is polling-based live display; no push/mobile delivery adapter is implemented yet.
+- **Latency:** event received, detected, created, and acknowledgement timestamps are stored. Processing and acknowledgement latency are calculated from actual timestamps; averages show `N/A` until data exists.
+
+### Milestone 3 demonstration
+
+1. Start Compose and the backend as described below, then run the Vite frontend.
+2. Log in as `admin` / `medisphere-demo` and open **Monitoring**.
+3. Publish an event through the existing wearable endpoint. This remains the `vital-signs` topic and is consumed by the existing Kafka listener:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/wearables/simulate -Authentication Basic -Credential (Get-Credential) -ContentType 'application/json' -Body '{"patientId":"MS-10001","vitalType":"HEART_RATE","value":145,"unit":"bpm"}'
+```
+
+4. Wait for the consumer and refresh/polling cycle. The alert is persisted, assigned to `ROLE_DOCTOR`, and appears as `CRITICAL` with its observed value and detection method.
+5. Acknowledge it in the page. The acknowledgement actor, timestamp, and latency are persisted and audited.
+6. After acknowledgement, use **Resolve** or **Dismiss**. The lifecycle actor and timestamp are persisted; nurses can acknowledge but cannot resolve or dismiss.
+
+The backend includes a reproducible synthetic labeled heart-rate evaluation in `AnomalyEvaluationTest`: 8 readings, 2 labeled anomalies, 2 true positives, and 0 false positives produce an actual precision of `1.0` (100%) for the tested rule set. This is a small synthetic unit evaluation, not a clinical validation study. A live Kafka test harness is future work; the current live demonstration was executed through the existing wearable simulator and Kafka consumer flow.
+
+## Milestone 4: Care plan and intervention
+
+Milestone 4 extends the existing Patient -> Digital Twin -> AI prediction -> alert pipeline with clinician-reviewed care plans. It is an academic decision-support workflow using synthetic data and configurable demo rules, not medical advice or clinical validation.
+
+```text
+Digital Twin + latest prediction/vitals/alerts
+			  -> deterministic care-plan generator
+			  -> guideline and safety validation
+			  -> provider review (approve/modify/reject)
+			  -> active intervention
+			  -> adherence records + outcome measurements
+			  -> Digital Twin update
+```
+
+The backend stores goals, interventions, monitoring tasks, expected outcomes, risk context, validation results, provider review, and audit timeline in the indexed `careplans` collection. Adherence and measured outcomes use separate indexed `adherence_records` and `outcomes` collections. The generator reuses `PatientService`, `DigitalTwinService`, `RiskPredictionRepository`, `VitalRepository`, and `AlertRepository`; it does not create another prediction model or patient data store.
+
+Care-plan APIs are available under `/api/careplans`: `POST /generate`, `GET /{id}`, `GET /patient/{patientId}`, `PUT /{id}`, `POST /{id}/validate`, `POST /{id}/approve`, `POST /{id}/modify`, `POST /{id}/reject`, `POST /{id}/activate`, `POST|GET /{id}/adherence`, `GET /adherence/patient/{patientId}`, `GET /{id}/adherence/statistics`, and `POST|GET /{id}/outcomes`. Provider approval actions require the existing `ADMIN` or `DOCTOR` roles. Medication-related recommendations fail the demo guideline safety check until provider review; no medication is prescribed or changed automatically.
+
+The React `/careplans` page reuses the existing layout, navigation, API client, tables, badges, and stat cards. `/careplans/{carePlanId}` provides the dedicated details workflow with risk reasoning, safety checks, timeline, provider comments, intervention modification, adherence status, and outcome measurement. A demonstration is: sign in as `admin` / `medisphere-demo`, select a synthetic patient, generate a plan, validate it, approve it, record adherence, and add a measured outcome. Existing Kafka remains intact for `vital-signs`; Milestone 4 adds the configurable `careplan-events` topic for `careplan.generated`, `careplan.validated`, `careplan.modified`, `careplan.approve`, `careplan.reject`, `intervention.completed`, `intervention.missed`, and `outcome.updated` events.
 
 ## Prerequisites
 
@@ -58,6 +109,8 @@ Demo Basic Auth credentials default to `admin` / `medisphere-demo`. Override wit
 - Vitals/labs: `GET /api/vitals/{patientId}`, `POST /api/vitals`, `GET /api/labs/{patientId}`, `POST /api/labs`
 - FHIR: `POST /api/fhir/Patient`, `POST /api/fhir/Observation`, `POST /api/fhir/resources`, `GET /api/fhir`, `GET /api/fhir/resources/{id}`, `POST /api/fhir/validate`
 - Wearables: `POST /api/wearables/simulate`; events are published to `vital-signs` and consumed into MongoDB
+- Monitoring: `GET /api/alerts`, `GET /api/alerts/events`, `GET /api/alerts/patient/{patientId}`, `GET /api/alerts/statistics`, `POST /api/alerts/{alertId}/acknowledge`, and `POST /api/alerts/{alertId}/RESOLVED|DISMISSED`
+- Care plans: `POST /api/careplans/generate`, `GET /api/careplans/{id}`, `GET /api/careplans/patient/{patientId}`, `PUT /api/careplans/{id}`, validation/provider review endpoints, adherence endpoints, and outcome endpoints
 - Consent: `GET/POST /api/consents`, `GET /api/consents/{patientId}`, `POST /api/consents/{consentId}/revoke`
 - Audit: `GET /api/audit` (ADMIN role)
 

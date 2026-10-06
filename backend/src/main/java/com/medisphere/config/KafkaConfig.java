@@ -12,4 +12,9 @@ public class KafkaConfig {
     NewTopic vitalSignsTopic(@Value("${medisphere.kafka.vital-topic:vital-signs}") String topic) {
         return TopicBuilder.name(topic).partitions(1).replicas(1).build();
     }
+
+    @Bean
+    NewTopic carePlanTopic(@Value("${medisphere.kafka.careplan-topic:careplan-events}") String topic) {
+        return TopicBuilder.name(topic).partitions(1).replicas(1).build();
+    }
 }

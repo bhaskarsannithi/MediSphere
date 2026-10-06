@@ -31,8 +31,12 @@ public class VitalStreamService {
 
     @KafkaListener(topics = "${medisphere.kafka.vital-topic:vital-signs}")
     public void consume(Map<String, Object> event) {
-        Vital vital = objectMapper.convertValue(event, Vital.class);
-        vital.setSource(vital.getSource() == null ? "KAFKA_WEARABLE" : vital.getSource());
-        vitalService.ingest(vital, "kafka-consumer");
+        try {
+            Vital vital = objectMapper.convertValue(event, Vital.class);
+            vital.setSource(vital.getSource() == null ? "KAFKA_WEARABLE" : vital.getSource());
+            vitalService.ingest(vital, "kafka-consumer");
+        } catch (IllegalArgumentException exception) {
+            // Invalid wearable data is rejected without producing a clinical alert.
+        }
     }
 }

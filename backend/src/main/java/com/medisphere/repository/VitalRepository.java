@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface VitalRepository extends MongoRepository<Vital, String> {
     List<Vital> findByPatientId(String patientId);
+    List<Vital> findTop50ByOrderByTimestampDesc();
 }

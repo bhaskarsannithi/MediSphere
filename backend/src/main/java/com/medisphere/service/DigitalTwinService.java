@@ -48,13 +48,15 @@ public class DigitalTwinService {
     public HealthTwin updateTwin(String patientId, Map<String, Object> updates) {
         HealthTwin twin = healthTwinRepository.findByPatientId(patientId).orElseGet(() -> createTwin(patientId));
         if (updates.containsKey("demographics")) {
-            twin.setDemographics((Map<String, Object>) updates.get("demographics"));
+            twin.setDemographics(mergeMap(twin.getDemographics(), (Map<String, Object>) updates.get("demographics")));
         }
         if (updates.containsKey("currentVitals")) {
-            twin.setCurrentVitals((Map<String, Object>) updates.get("currentVitals"));
+            twin.setCurrentVitals(mergeMap(twin.getCurrentVitals(), (Map<String, Object>) updates.get("currentVitals")));
         }
         if (updates.containsKey("recentLabs")) {
-            twin.setRecentLabs((List<Map<String, Object>>) updates.get("recentLabs"));
+            List<Map<String, Object>> labs = twin.getRecentLabs() == null ? new ArrayList<>() : new ArrayList<>(twin.getRecentLabs());
+            labs.addAll((List<Map<String, Object>>) updates.get("recentLabs"));
+            twin.setRecentLabs(labs);
         }
         if (updates.containsKey("fhirResources")) {
             twin.setFhirResources((List<String>) updates.get("fhirResources"));
@@ -63,7 +65,9 @@ public class DigitalTwinService {
             twin.setConsentStatus((String) updates.get("consentStatus"));
         }
         if (updates.containsKey("connectedSources")) {
-            twin.setConnectedSources((List<String>) updates.get("connectedSources"));
+            List<String> sources = new ArrayList<>(twin.getConnectedSources() == null ? List.of() : twin.getConnectedSources());
+            for (String source : (List<String>) updates.get("connectedSources")) if (!sources.contains(source)) sources.add(source);
+            twin.setConnectedSources(sources);
         }
         if (updates.containsKey("riskPredictions")) {
             twin.setRiskPredictions((Map<String, Object>) updates.get("riskPredictions"));
@@ -71,6 +75,12 @@ public class DigitalTwinService {
         twin.setCompleteness(calculateCompleteness(twin));
         twin.setLastUpdated(LocalDateTime.now());
         return healthTwinRepository.save(twin);
+    }
+
+    private Map<String, Object> mergeMap(Map<String, Object> existing, Map<String, Object> updates) {
+        Map<String, Object> merged = existing == null ? new java.util.HashMap<>() : new java.util.HashMap<>(existing);
+        if (updates != null) merged.putAll(updates);
+        return merged;
     }
 
     public int calculateCompleteness(HealthTwin twin) {
